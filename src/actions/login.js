@@ -1,7 +1,8 @@
 import {
   IS_LOADING,
   LOGIN_GOOGLE_SUBMIT,
-  LOGIN_SUBMIT
+  LOGIN_SUBMIT,
+  USER_LOGIN
 } from "../action-types/index";
 
 var jwtDecode = require('jwt-decode');
@@ -32,27 +33,38 @@ export function isLoading(value) {
   }
 }
 
-export function loginSubmit(googleId) {
-  return {
-    type: LOGIN_SUBMIT,
-    payload: {
-      googleId
+export function userLogin(dataUser){
+  return{
+    type: USER_LOGIN,
+    payload:{
+      dataUser
     }
   }
 }
 
-export function googleLogin(googleResponse){
-  return{
-    type: LOGIN_GOOGLE_SUBMIT,
-    payload:{
-      googleToken: googleResponse.accessToken
+export function getUserInfo(xToken){
+  const url = "http://localhost:17927/Usuario/Me";
+
+  fetch(url, {
+    method: 'POST', // or 'PUT'
+    headers:{
+      'Content-Type': 'application/json',
+      'X-Token': xToken
     }
-  }
+  }).then(res => res.json())
+  .catch(error => console.error('Error:', error))
+  .then(response => {
+    dispatch(isLoading(false))
+    
+    console.log(response);
+  });
 }
 
 
 export function googleLoginAsync(googleResponse) {
   return (dispatch) => {
+    
+    dispatch(isLoading(true))
     
     const decoded = jwtDecode(googleResponse.tokenId);
     const data = {
@@ -66,29 +78,52 @@ export function googleLoginAsync(googleResponse) {
       GMail: decoded.email
     }
 
-    // const url = "http://localhost:17927/Usuario/GestionarRedSocial";
+    // Call a gestionar red social
+    var result = fetch("http://localhost:17927/Usuario/GestionarRedSocial", {
+      method: 'POST', // or 'PUT'
+      body: JSON.stringify(data), // data can be `string` or {object}!
+      headers:{
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(function(response) {
+      return response.json();
+    })
+    // Trato el response de gestionar red social y obtengo tokens
+    .then(response => {
+      // parse response
+      const splitedResponse = response.response.split("|");
+      const code = splitedResponse[0];
+      const xToken = (code == "0000") ? splitedResponse[1] : null;
+      const xValue = (code == "0000") ? splitedResponse[2] : null;
 
-    // fetch(url, {
-    //   method: 'POST', // or 'PUT'
-    //   body: JSON.stringify(data), // data can be `string` or {object}!
-    //   headers:{
-    //     'Content-Type': 'application/json'
-    //   }
-    // }).then(res => res.json())
-    // .catch(error => console.error('Error:', error))
-    // .then(response => {
-    //   dispatch(isLoading(false))
-    //   console.log('Success:', response)
-    // });
+      // Hago el call a usuario ME
+      return fetch("http://localhost:17927/Usuario/Me", {
+        method: 'POST', // or 'PUT'
+        headers:{
+          'Content-Type': 'application/json',
+          'X-Token': xToken
+        }
+      })
+    })
+    .then(function(response) {
+      return response.json();
+    })
+    .catch(function(error) {
+      console.log('Request failed', error)
+    })
+  
+    // I'm using the result variable to show that you can continue to extend the chain from the returned promise
+    result.then(function(r) {
+      const dataJson = JSON.parse(r.response);
 
+      dispatch(userLogin(dataJson));
+      
+      console.log(dataJson); // 2nd request result
+    });
+
+    
     dispatch(isLoading(true))
-
-    // setTimeout(()=> {
-
-    //   dispatch(isLoading(false))
-    //   dispatch(googleLogin(googleResponse))
-
-    // }, 5000)
   }
 
 }

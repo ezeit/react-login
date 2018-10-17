@@ -1,3 +1,4 @@
 export const LOGIN_SUBMIT = "LOGIN_SUBMIT";
 export const LOGIN_GOOGLE_SUBMIT = "LOGIN_GOOGLE_SUBMIT";
 export const IS_LOADING = 'IS_LOADING';
+export const USER_LOGIN = 'USER_LOGIN';

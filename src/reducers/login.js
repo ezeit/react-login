@@ -1,30 +1,25 @@
 import { 
   LOGIN_SUBMIT,
-  LOGIN_GOOGLE_SUBMIT
+  LOGIN_GOOGLE_SUBMIT,
+  USER_LOGIN
 } from '../action-types/index';
 
 const initialState = {
-    user: "",
-    password: "",
-    googleId: 0,
-    facebookId: 0,
+    user: null
 }
 
 function login(state = initialState, action) {
   switch(action.type) {
-    case LOGIN_SUBMIT:
+    case USER_LOGIN:
+
+      localStorage.setItem('X-Token', JSON.stringify(action.payload.dataUser.Usuario.UsuarioDetalleGuid));
+
       return {
         ...state,
-        googleId: action.payload.googleId
+        user: action.payload.dataUser.Usuario
       }
     
-    case LOGIN_GOOGLE_SUBMIT:
-      return {
-        ...state,
-        googleToken: action.payload.googleToken 
-      }
-    
-      default:
+    default:
       return state
   }
 }

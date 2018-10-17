@@ -14,9 +14,6 @@ class LoginContainer extends React.Component{
     }
 
     handleSuccessGoogle = response => {
-
-        console.log(response.tokenId)
-
         this.props.actions.googleLoginAsync(response);
     }
 
